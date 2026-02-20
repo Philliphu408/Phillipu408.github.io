@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Penguin Knockout 3D</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-family: Arial;
+    }
+  </style>
+</head>
+<body>
+<div id="info">WASD to move | Click to punch</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+let renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Light
+let light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(5,10,7);
+scene.add(light);
+
+// Floor
+let floorGeo = new THREE.BoxGeometry(20, 1, 20);
+let floorMat = new THREE.MeshStandardMaterial({color: 0x00aa00});
+let floor = new THREE.Mesh(floorGeo, floorMat);
+floor.position.y = -1;
+scene.add(floor);
+
+// Player (blue penguin)
+let playerGeo = new THREE.BoxGeometry(1,2,1);
+let playerMat = new THREE.MeshStandardMaterial({color: 0x0000ff});
+let player = new THREE.Mesh(playerGeo, playerMat);
+scene.add(player);
+
+// Bots
+let bots = [];
+for (let i=0; i<3; i++) {
+  let bot = new THREE.Mesh(
+    new THREE.BoxGeometry(1,2,1),
+    new THREE.MeshStandardMaterial({color: 0xff0000})
+  );
+  bot.position.set(Math.random()*6-3,0,Math.random()*6-3);
+  scene.add(bot);
+  bots.push(bot);
+}
+
+camera.position.z = 10;
+camera.position.y = 5;
+camera.lookAt(player.position);
+
+// Controls
+let keys = {};
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+// Punch
+document.addEventListener("click", () => {
+  bots.forEach(bot => {
+    let distance = player.position.distanceTo(bot.position);
+    if (distance < 2) {
+      bot.position.x += (bot.position.x - player.position.x);
+      bot.position.z += (bot.position.z - player.position.z);
+    }
+  });
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (keys["w"]) player.position.z -= 0.1;
+  if (keys["s"]) player.position.z += 0.1;
+  if (keys["a"]) player.position.x -= 0.1;
+  if (keys["d"]) player.position.x += 0.1;
+
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
